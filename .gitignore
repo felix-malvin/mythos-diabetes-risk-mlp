@@ -1,0 +1,21 @@
+# Environment
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Editor dan OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Streamlit secrets (jangan pernah di-commit)
+.streamlit/secrets.toml
+
+# Checkpoint sementara saat eksperimen.
+# Model final di models/ TETAP di-commit karena dipakai aplikasi.
+models/tmp/
+*.log

@@ -31,6 +31,17 @@ VAL_SIZE = 0.15
 TEST_SIZE = 0.15
 
 # ---------------------------------------------------------------------------
+# Keputusan preprocessing (hasil notebooks/02_preprocessing.ipynb)
+# ---------------------------------------------------------------------------
+# Baris dengan BMI >= 70 dihapus karena terindikasi salah input (lihat notebook 02).
+# Aplikasi juga hanya menerima input BMI sampai nilai ini.
+BMI_MAX_VALID = 69
+
+# Artefak preprocessing yang dipakai ulang oleh notebook lain dan aplikasi
+SCALER_PATH = MODELS_DIR / "scaler.joblib"
+PREPROCESSING_CONFIG_PATH = MODELS_DIR / "preprocessing_config.json"
+
+# ---------------------------------------------------------------------------
 # Kolom dataset
 # ---------------------------------------------------------------------------
 TARGET_COL = "Diabetes_binary"

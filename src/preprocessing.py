@@ -1,18 +1,23 @@
-"""Pipeline data: load, cleaning, split, dan scaling.
+"""Pipeline data: load, cleaning, split, scaling, dan penyimpanan artefak.
 
-Versi awal (Fase 2). Keputusan final soal outlier BMI ditetapkan di
-notebooks/02_preprocessing.ipynb berdasarkan temuan EDA, lalu nilai
-defaultnya diperbarui di file ini.
+Keputusan yang dipakai di file ini berasal dari notebooks/02_preprocessing.ipynb:
+1. Baris duplikat (identik di semua kolom) dihapus.
+2. Baris dengan BMI di atas config.BMI_MAX_VALID (69) dihapus.
+3. Split stratified 70/15/15 dengan seed tetap.
+4. StandardScaler di-fit hanya pada data train, khusus kolom ordinal dan numerik.
 
-Prinsip utama:
-- Split dilakukan SETELAH cleaning, dengan stratifikasi dan seed tetap,
-  sehingga setiap notebook yang memanggil get_splits() mendapat
-  pembagian data yang identik tanpa perlu menyimpan file hasil split.
-- Scaler hanya di-fit pada data training untuk mencegah kebocoran data.
+Cara pakai di notebook lain:
+    from src.preprocessing import prepare_datasets
+    data = prepare_datasets()
+    data["X_train"], data["y_train"], ...   # numpy array siap masuk model
 """
 
 from __future__ import annotations
 
+import hashlib
+import json
+
+import joblib
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -41,28 +46,28 @@ def load_raw_data(path=config.RAW_DATA_PATH) -> pd.DataFrame:
 def clean_data(
     df: pd.DataFrame,
     drop_duplicates: bool = True,
-    bmi_upper: int | None = None,
+    bmi_max: int | None = config.BMI_MAX_VALID,
 ) -> tuple[pd.DataFrame, dict]:
-    """Membersihkan data dan mengembalikan ringkasan perubahan.
+    """Membersihkan data dan mengembalikan ringkasan jumlah baris tiap langkah.
 
     drop_duplicates : hapus baris yang identik di semua kolom (fitur + label).
-                      Tujuannya mencegah baris yang sama muncul di train dan test.
-    bmi_upper       : batas atas BMI (clipping). None berarti belum diterapkan.
+    bmi_max         : hapus baris dengan BMI > bmi_max. None berarti tidak difilter.
     """
-    summary = {"rows_before": len(df)}
+    summary = {"rows_raw": len(df)}
 
     if drop_duplicates:
-        df = df.drop_duplicates().reset_index(drop=True)
-    summary["rows_after_dedup"] = len(df)
-    summary["duplicates_removed"] = summary["rows_before"] - len(df)
+        df = df.drop_duplicates()
+    summary["duplicates_removed"] = summary["rows_raw"] - len(df)
 
-    if bmi_upper is not None:
-        summary["bmi_clipped"] = int((df["BMI"] > bmi_upper).sum())
-        df = df.assign(BMI=df["BMI"].clip(upper=bmi_upper))
+    if bmi_max is not None:
+        before = len(df)
+        df = df[df["BMI"] <= bmi_max]
+        summary["bmi_outliers_removed"] = before - len(df)
     else:
-        summary["bmi_clipped"] = 0
+        summary["bmi_outliers_removed"] = 0
 
-    summary["rows_after"] = len(df)
+    df = df.reset_index(drop=True)
+    summary["rows_clean"] = len(df)
     return df, summary
 
 
@@ -89,31 +94,81 @@ def split_data(df: pd.DataFrame, seed: int = config.SEED) -> dict:
     }
 
 
-def get_splits(drop_duplicates: bool = True, bmi_upper: int | None = None) -> dict:
-    """Shortcut: load -> clean -> split. Dipakai oleh semua notebook."""
+def get_splits(
+    drop_duplicates: bool = True,
+    bmi_max: int | None = config.BMI_MAX_VALID,
+) -> dict:
+    """Shortcut: load -> clean -> split. Hasilnya masih berupa DataFrame (belum di-scaling)."""
     df = load_raw_data()
-    df, summary = clean_data(df, drop_duplicates=drop_duplicates, bmi_upper=bmi_upper)
+    df, summary = clean_data(df, drop_duplicates=drop_duplicates, bmi_max=bmi_max)
     splits = split_data(df)
     splits["clean_summary"] = summary
     return splits
+
+
+def split_fingerprint(index: pd.Index) -> str:
+    """Hash pendek dari index baris. Dipakai untuk memastikan semua notebook memakai split yang sama."""
+    raw = ",".join(map(str, sorted(index.tolist())))
+    return hashlib.sha256(raw.encode()).hexdigest()[:16]
 
 
 # ---------------------------------------------------------------------------
 # Scaling
 # ---------------------------------------------------------------------------
 def fit_scaler(X_train: pd.DataFrame) -> StandardScaler:
-    """Fit StandardScaler hanya pada kolom ordinal dan kontinu milik data train."""
+    """Fit StandardScaler hanya pada kolom ordinal dan numerik milik data train."""
     scaler = StandardScaler()
     scaler.fit(X_train[config.SCALED_COLS])
     return scaler
 
 
 def transform_features(X: pd.DataFrame, scaler: StandardScaler) -> np.ndarray:
-    """Menerapkan scaler lalu mengembalikan array float32 sesuai FEATURE_COLS.
+    """Menerapkan scaler lalu mengembalikan array float32 dengan urutan config.FEATURE_COLS.
 
-    Kolom biner dibiarkan 0/1. Urutan kolom output selalu mengikuti
-    config.FEATURE_COLS supaya sama persis antara training dan aplikasi.
+    Kolom biner dibiarkan 0/1. Fungsi ini juga yang dipakai aplikasi saat inferensi,
+    jadi transformasi saat training dan saat prediksi dijamin sama.
     """
     X = X[config.FEATURE_COLS].astype("float64").copy()
     X[config.SCALED_COLS] = scaler.transform(X[config.SCALED_COLS])
     return X.to_numpy(dtype=np.float32)
+
+
+# ---------------------------------------------------------------------------
+# Data siap pakai untuk model
+# ---------------------------------------------------------------------------
+def prepare_datasets() -> dict:
+    """Load -> clean -> split -> fit scaler (train) -> transform semua split.
+
+    Mengembalikan numpy array siap masuk model, beserta DataFrame asli
+    (belum di-scaling) untuk keperluan analisis kesalahan dan explainability.
+    """
+    splits = get_splits()
+    scaler = fit_scaler(splits["X_train"])
+    data = {"scaler": scaler, "clean_summary": splits["clean_summary"]}
+    for part in ["train", "val", "test"]:
+        X_df = splits[f"X_{part}"]
+        data[f"X_{part}"] = transform_features(X_df, scaler)
+        data[f"y_{part}"] = splits[f"y_{part}"].to_numpy(dtype=np.float32)
+        data[f"X_{part}_raw"] = X_df
+    data["test_fingerprint"] = split_fingerprint(splits["X_test"].index)
+    return data
+
+
+# ---------------------------------------------------------------------------
+# Simpan dan muat artefak
+# ---------------------------------------------------------------------------
+def save_preprocessing_artifacts(scaler: StandardScaler, info: dict) -> None:
+    """Menyimpan scaler dan konfigurasi preprocessing ke folder models/."""
+    config.MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    joblib.dump(scaler, config.SCALER_PATH)
+    with open(config.PREPROCESSING_CONFIG_PATH, "w", encoding="utf-8") as f:
+        json.dump(info, f, indent=2, ensure_ascii=False)
+
+
+def load_scaler() -> StandardScaler:
+    return joblib.load(config.SCALER_PATH)
+
+
+def load_preprocessing_config() -> dict:
+    with open(config.PREPROCESSING_CONFIG_PATH, encoding="utf-8") as f:
+        return json.load(f)

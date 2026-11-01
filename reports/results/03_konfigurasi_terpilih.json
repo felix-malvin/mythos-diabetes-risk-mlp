@@ -1,0 +1,27 @@
+{
+  "konfigurasi_terpilih": {
+    "hidden_units": [
+      128,
+      64
+    ],
+    "dropout": 0.2,
+    "l2": 0.0,
+    "batch_norm": false,
+    "learning_rate": 0.001,
+    "batch_size": 512
+  },
+  "label": "[128-64] do=0.2",
+  "keputusan": {
+    "E1_arsitektur": "128-64",
+    "E2a_dropout": "dropout 0.2",
+    "E2b_regularisasi": "tanpa tambahan"
+  },
+  "val_pr_auc_mean": 0.4467859238306255,
+  "val_pr_auc_std": 0.0014749422578506975,
+  "seeds": [
+    42,
+    123,
+    2026
+  ],
+  "catatan": "learning_rate dan batch_size masih nilai awal, dituning di notebook 04"
+}

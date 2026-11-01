@@ -1,0 +1,24 @@
+{
+  "konfigurasi": {
+    "hidden_units": [
+      128,
+      64
+    ],
+    "dropout": 0.2,
+    "l2": 0.0,
+    "batch_norm": false,
+    "learning_rate": 0.001,
+    "batch_size": 512
+  },
+  "label": "[128-64] do=0.2",
+  "skenario_e5": "lr 0.001, bs 512",
+  "seed_model_final": 42,
+  "model_path": "models/mlp_tanpa_fitur_unik.keras",
+  "loss": "binary_crossentropy",
+  "e5_val_pr_auc_mean": 0.4467859238306255,
+  "e5_val_pr_auc_std": 0.0014749422578506975,
+  "model_final_val_pr_auc": 0.44626464194121984,
+  "model_final_val_roc_auc": 0.8190144535231746,
+  "model_final_best_epoch": 22,
+  "catatan": "Model tanpa fitur unik. Angka di file ini berasal dari data validation, bukan data test."
+}

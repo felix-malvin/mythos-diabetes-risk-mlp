@@ -73,19 +73,20 @@ Notebook model cukup memanggil `prepare_datasets()` dari `src/preprocessing.py`.
 |---|---|---|
 | 01_eda | Exploratory data analysis | Afriyoga Haganta Tarigan |
 | 02_preprocessing | Cleaning, split, scaling | Felix Malvin |
-| 03_model_mlp | Arsitektur MLP, dropout, L2, Batch Normalization | Wilbert Edric Tanjiro |
+| 03_model_mlp | Arsitektur MLP, dropout, L2, BatchNorm | Wilbert Edric Tanjiro |
 | 04_eksperimen_optimasi | Learning rate, batch size, model final | Afriyoga Haganta Tarigan |
 | 05_fitur_unik_imbalance | Focal Loss dan threshold | Johannes Hartanto |
 | 06_fitur_unik_explainability | Integrated Gradients | Erik Hamli |
 | 07_evaluasi_final | Evaluasi di data test | Felix Malvin |
 
-Notebook 03 melatih 30 model. Set `RUN_EXPERIMENTS = False` untuk memuat hasil yang tersimpan di `reports/results/` tanpa training ulang.
+Notebook 03 melatih 30 model dan notebook 04 melatih 25 model. Di kedua notebook, set `RUN_EXPERIMENTS = False` untuk memuat hasil yang tersimpan di `reports/results/` tanpa training ulang.
 
 ## Status Pengerjaan
 
 - [x] Fase 2: setup repository, environment, dataset, EDA
 - [x] Fase 3a: preprocessing (dedup, outlier BMI, split 70/15/15, scaler)
 - [x] Fase 3b: arsitektur MLP dan regularisasi (notebook 03)
-- [ ] Fase 3c: learning rate dan batch size, fitur unik, evaluasi
+- [x] Fase 3c: learning rate, batch size, model tanpa fitur unik (notebook 04)
+- [ ] Fase 3d: fitur unik 1 dan 2, evaluasi final
 - [ ] Fase 4: penyelesaian Tugas 1
 - [ ] Fase 5: aplikasi dan deployment (UTS)

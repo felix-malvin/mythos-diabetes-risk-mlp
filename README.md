@@ -67,6 +67,16 @@ Buka folder repository di VSCode, pilih kernel `.venv`, lalu jalankan notebook d
 
 Notebook model cukup memanggil `prepare_datasets()` dari `src/preprocessing.py`.
 
+## Model Final
+
+| File | Isi |
+|---|---|
+| `models/mlp_final.keras` | MLP [128-64], ReLU, dropout 0,2, Adam 0,001, batch 512, loss BCE, seed 42 |
+| `models/model_config.json` | Urutan fitur dan threshold keputusan **0,135** (F2 maksimum di data validation) |
+| `models/scaler.joblib` | StandardScaler hasil fit di data train |
+
+Probabilitas >= 0,135 dikategorikan berisiko diabetes. Hasil ini adalah estimasi risiko, bukan diagnosis medis.
+
 ## Susunan Notebook
 
 | Notebook | Isi | Penanggung jawab |
@@ -87,6 +97,7 @@ Notebook 03 melatih 30 model dan notebook 04 melatih 25 model. Di kedua notebook
 - [x] Fase 3a: preprocessing (dedup, outlier BMI, split 70/15/15, scaler)
 - [x] Fase 3b: arsitektur MLP dan regularisasi (notebook 03)
 - [x] Fase 3c: learning rate, batch size, model tanpa fitur unik (notebook 04)
-- [ ] Fase 3d: fitur unik 1 dan 2, evaluasi final
+- [x] Fase 3d: fitur unik 1, threshold F2 (notebook 05). Model final dibekukan
+- [ ] Fase 3e: fitur unik 2 (Integrated Gradients) dan evaluasi final di data test
 - [ ] Fase 4: penyelesaian Tugas 1
 - [ ] Fase 5: aplikasi dan deployment (UTS)

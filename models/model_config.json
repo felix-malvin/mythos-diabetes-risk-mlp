@@ -1,0 +1,66 @@
+{
+  "model_path": "models/mlp_final.keras",
+  "scaler_path": "models/scaler.joblib",
+  "feature_cols": [
+    "HighBP",
+    "HighChol",
+    "CholCheck",
+    "BMI",
+    "Smoker",
+    "Stroke",
+    "HeartDiseaseorAttack",
+    "PhysActivity",
+    "Fruits",
+    "Veggies",
+    "HvyAlcoholConsump",
+    "AnyHealthcare",
+    "NoDocbcCost",
+    "GenHlth",
+    "MentHlth",
+    "PhysHlth",
+    "DiffWalk",
+    "Sex",
+    "Age",
+    "Education",
+    "Income"
+  ],
+  "class_labels": {
+    "0": "Tidak diabetes",
+    "1": "Diabetes"
+  },
+  "konfigurasi": {
+    "hidden_units": [
+      128,
+      64
+    ],
+    "dropout": 0.2,
+    "l2": 0.0,
+    "batch_norm": false,
+    "learning_rate": 0.001,
+    "batch_size": 512
+  },
+  "loss": "BCE",
+  "seed": 42,
+  "threshold": 0.135,
+  "kriteria_threshold": "F2 maksimum di data validation",
+  "metrik_validation_pada_threshold": {
+    "threshold": 0.135,
+    "precision": 0.2993,
+    "recall": 0.8347,
+    "specificity": 0.647,
+    "f1": 0.4406,
+    "f2": 0.6147,
+    "accuracy": 0.6757,
+    "persen_diprediksi_positif": 0.4267,
+    "tp": 4384,
+    "fp": 10265,
+    "fn": 868,
+    "tn": 18815
+  },
+  "metrik_validation_ranking": {
+    "pr_auc": 0.4463,
+    "roc_auc": 0.819
+  },
+  "test_fingerprint": "01b58633cb6f22b5",
+  "catatan": "Semua metrik di file ini berasal dari data validation. Hasil data test ada di notebook 07."
+}

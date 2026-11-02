@@ -1,0 +1,26 @@
+{
+  "konfigurasi": {
+    "hidden_units": [
+      128,
+      64,
+      32,
+      16
+    ],
+    "dropout": 0.0,
+    "l2": 1e-06,
+    "batch_norm": true,
+    "learning_rate": 0.0043925333029596605,
+    "batch_size": 256
+  },
+  "label": "[128-64-32-16] do=0.0 l2=1e-06 BN lr=0.00439253 bs=256",
+  "skenario": "Random Search kandidat_3",
+  "seed_model_final": 42,
+  "model_path": "models/mlp_tanpa_fitur_unik_rs.keras",
+  "loss": "binary_crossentropy",
+  "rs_val_pr_auc_mean": 0.4478574325767819,
+  "rs_val_pr_auc_std": 0.000607906217082508,
+  "model_final_val_pr_auc": 0.44753697673032933,
+  "model_final_val_roc_auc": 0.8184407282848166,
+  "model_final_best_epoch": 7,
+  "catatan": "Menggantikan konfigurasi notebook 04 berdasarkan aturan uji konfirmasi. Angka dari data validation."
+}

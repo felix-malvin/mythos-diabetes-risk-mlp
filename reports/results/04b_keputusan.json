@@ -1,0 +1,39 @@
+{
+  "metode": "Random Search KerasTuner 1.4.8, 30 trial, seed 42",
+  "aturan": "ganti hanya jika rata-rata konfigurasi sekarang < (rata-rata kandidat terbaik - 1 std kandidat), 3 seed",
+  "konfigurasi_sekarang": {
+    "hidden_units": [
+      128,
+      64
+    ],
+    "dropout": 0.2,
+    "l2": 0.0,
+    "batch_norm": false,
+    "learning_rate": 0.001,
+    "batch_size": 512
+  },
+  "sekarang_val_pr_auc": {
+    "mean": 0.446786,
+    "std": 0.001475
+  },
+  "kandidat_terbaik": "kandidat_3",
+  "kandidat_terbaik_konfigurasi": {
+    "hidden_units": [
+      128,
+      64,
+      32,
+      16
+    ],
+    "dropout": 0.0,
+    "l2": 1e-06,
+    "batch_norm": true,
+    "learning_rate": 0.0043925333029596605,
+    "batch_size": 256
+  },
+  "kandidat_val_pr_auc": {
+    "mean": 0.447857,
+    "std": 0.000608
+  },
+  "batas_setara": 0.44725,
+  "ganti_konfigurasi": true
+}

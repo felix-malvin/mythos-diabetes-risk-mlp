@@ -1,7 +1,7 @@
 skenario,loss,konfigurasi,parameter,val PR-AUC,std,val ROC-AUC,train PR-AUC,gap train-val,epoch terbaik,detik/run,setara terbaik,dipilih
-bce,BCE,[128-64] do=0.2,11137,0.4468,0.0015,0.8187,0.4498,0.003,18.3,66.0,True,ya
-bce_berbobot,BCE berbobot (alpha=0.847),[128-64] do=0.2 BCE berbobot (alpha=0.847),11137,0.4462,0.0011,0.8189,0.4422,-0.004,17.3,59.0,True,
-focal_g1,Focal (gamma=1),[128-64] do=0.2 Focal (gamma=1),11137,0.4462,0.0009,0.8186,0.4449,-0.0013,14.7,54.0,True,
-focal_g2,Focal (gamma=2),[128-64] do=0.2 Focal (gamma=2),11137,0.4462,0.001,0.8187,0.4449,-0.0013,18.7,64.0,True,
-focal_g3,Focal (gamma=3),[128-64] do=0.2 Focal (gamma=3),11137,0.4452,0.0003,0.8185,0.4389,-0.0064,13.7,52.0,False,
-focal_g2_a075,"Focal (gamma=2, alpha=0.75)","[128-64] do=0.2 Focal (gamma=2, alpha=0.75)",11137,0.4464,0.0005,0.8188,0.4449,-0.0014,22.7,74.0,True,
+bce,BCE,[128-64-32-16] do=0.0 l2=1e-06 BN lr=0.00439253 bs=256,14417,0.4479,0.0006,0.8188,0.4468,-0.0011,8.0,37.0,True,ya
+bce_berbobot,BCE berbobot (alpha=0.847),[128-64-32-16] do=0.0 l2=1e-06 BN lr=0.00439253 bs=256 BCE berbobot (alpha=0.847),14417,0.447,0.0016,0.8186,0.4429,-0.0041,9.3,39.0,False,
+focal_g1,Focal (gamma=1),[128-64-32-16] do=0.0 l2=1e-06 BN lr=0.00439253 bs=256 Focal (gamma=1),14417,0.4474,0.0016,0.8186,0.4437,-0.0037,6.7,35.0,True,
+focal_g2,Focal (gamma=2),[128-64-32-16] do=0.0 l2=1e-06 BN lr=0.00439253 bs=256 Focal (gamma=2),14417,0.4477,0.0009,0.8187,0.4435,-0.0041,8.0,37.0,True,
+focal_g3,Focal (gamma=3),[128-64-32-16] do=0.0 l2=1e-06 BN lr=0.00439253 bs=256 Focal (gamma=3),14417,0.4466,0.0012,0.8187,0.4409,-0.0058,9.0,39.0,False,
+focal_g2_a075,"Focal (gamma=2, alpha=0.75)","[128-64-32-16] do=0.0 l2=1e-06 BN lr=0.00439253 bs=256 Focal (gamma=2, alpha=0.75)",14417,0.447,0.0011,0.8188,0.4409,-0.0061,10.7,43.0,False,

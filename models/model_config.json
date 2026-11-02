@@ -31,35 +31,37 @@
   "konfigurasi": {
     "hidden_units": [
       128,
-      64
+      64,
+      32,
+      16
     ],
-    "dropout": 0.2,
-    "l2": 0.0,
-    "batch_norm": false,
-    "learning_rate": 0.001,
-    "batch_size": 512
+    "dropout": 0.0,
+    "l2": 1e-06,
+    "batch_norm": true,
+    "learning_rate": 0.0043925333029596605,
+    "batch_size": 256
   },
   "loss": "BCE",
   "seed": 42,
-  "threshold": 0.135,
+  "threshold": 0.13,
   "kriteria_threshold": "F2 maksimum di data validation",
   "metrik_validation_pada_threshold": {
-    "threshold": 0.135,
-    "precision": 0.2993,
-    "recall": 0.8347,
-    "specificity": 0.647,
-    "f1": 0.4406,
-    "f2": 0.6147,
-    "accuracy": 0.6757,
-    "persen_diprediksi_positif": 0.4267,
-    "tp": 4384,
-    "fp": 10265,
-    "fn": 868,
-    "tn": 18815
+    "threshold": 0.13,
+    "precision": 0.3065,
+    "recall": 0.8182,
+    "specificity": 0.6657,
+    "f1": 0.446,
+    "f2": 0.6134,
+    "accuracy": 0.689,
+    "persen_diprediksi_positif": 0.4083,
+    "tp": 4297,
+    "fp": 9722,
+    "fn": 955,
+    "tn": 19358
   },
   "metrik_validation_ranking": {
-    "pr_auc": 0.4463,
-    "roc_auc": 0.819
+    "pr_auc": 0.4475,
+    "roc_auc": 0.8184
   },
   "test_fingerprint": "01b58633cb6f22b5",
   "catatan": "Semua metrik di file ini berasal dari data validation. Hasil data test ada di notebook 07."

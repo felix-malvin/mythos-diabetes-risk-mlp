@@ -66,6 +66,40 @@ def make_dataset(X, y, batch_size: int, shuffle: bool = False, seed: int = confi
 
 
 # ---------------------------------------------------------------------------
+# Loss
+# ---------------------------------------------------------------------------
+def make_loss(spec: dict | None):
+    """Membuat fungsi loss dari spesifikasi yang bisa disimpan sebagai JSON.
+
+    spec = None atau {"type": "bce"}                      -> binary cross-entropy biasa
+    spec = {"type": "focal", "gamma": g, "alpha": a}      -> BinaryFocalCrossentropy
+
+    Pada Focal Loss, alpha=None berarti tanpa pembobotan kelas. Kalau alpha diisi, kelas 1
+    diberi bobot alpha dan kelas 0 diberi bobot (1 - alpha). Dengan gamma=0, Focal Loss
+    berubah menjadi binary cross-entropy berbobot (setara dengan class weight).
+    """
+    if spec is None or spec.get("type", "bce") == "bce":
+        return "binary_crossentropy"
+    if spec["type"] == "focal":
+        alpha = spec.get("alpha")
+        return keras.losses.BinaryFocalCrossentropy(
+            apply_class_balancing=alpha is not None,
+            alpha=0.25 if alpha is None else float(alpha),
+            gamma=float(spec.get("gamma", 2.0)),
+        )
+    raise ValueError(f"Jenis loss tidak dikenal: {spec}")
+
+
+def loss_label(spec: dict | None) -> str:
+    if spec is None or spec.get("type", "bce") == "bce":
+        return "BCE"
+    gamma, alpha = float(spec.get("gamma", 2.0)), spec.get("alpha")
+    if gamma == 0:
+        return f"BCE berbobot (alpha={alpha:g})"
+    return f"Focal (gamma={gamma:g}" + (f", alpha={alpha:g})" if alpha is not None else ")")
+
+
+# ---------------------------------------------------------------------------
 # Model
 # ---------------------------------------------------------------------------
 def build_model(
@@ -75,6 +109,7 @@ def build_model(
     batch_norm: bool = False,
     learning_rate: float = 1e-3,
     loss="binary_crossentropy",
+    loss_spec: dict | None = None,
     n_features: int = len(config.FEATURE_COLS),
     name: str = "mlp_diabetes",
     **_,
@@ -83,8 +118,10 @@ def build_model(
 
     Susunan setiap hidden layer: Dense (He normal, L2 opsional) -> BatchNorm (opsional)
     -> ReLU -> Dropout (opsional). Output: 1 neuron sigmoid (probabilitas diabetes).
-    Parameter `loss` bisa diganti, misalnya dengan Focal Loss di notebook fitur unik 1.
+    Kalau `loss_spec` diisi (misalnya Focal Loss di notebook 05), nilainya menggantikan `loss`.
     """
+    if loss_spec is not None:
+        loss = make_loss(loss_spec)
     reg = keras.regularizers.L2(l2) if l2 > 0 else None
     inputs = keras.Input(shape=(n_features,), name="fitur_input")
     x = inputs
@@ -137,6 +174,9 @@ def config_label(cfg: dict) -> str:
         label += " BN"
     if cfg.get("learning_rate", 1e-3) != 1e-3 or cfg.get("batch_size", 512) != 512:
         label += f" lr={cfg['learning_rate']:g} bs={cfg['batch_size']}"
+    spec = cfg.get("loss_spec")
+    if spec is not None and spec.get("type", "bce") != "bce":
+        label += f" {loss_label(spec)}"
     return label
 
 
@@ -229,8 +269,15 @@ def summarize(runs: pd.DataFrame) -> pd.DataFrame:
 
 
 def _extras(cfg: dict) -> int:
-    """Jumlah komponen tambahan di luar dropout (L2 dan BatchNorm)."""
-    return int(cfg.get("l2", 0) > 0) + int(bool(cfg.get("batch_norm")))
+    """Jumlah komponen tambahan di luar dropout.
+
+    L2, BatchNorm, loss selain BCE, dan alpha pada loss masing-masing dihitung satu.
+    """
+    extra = int(cfg.get("l2", 0) > 0) + int(bool(cfg.get("batch_norm")))
+    spec = cfg.get("loss_spec")
+    if spec is not None and spec.get("type", "bce") != "bce":
+        extra += 1 + int(spec.get("alpha") is not None and float(spec.get("gamma", 2.0)) > 0)
+    return extra
 
 
 def select_best(summary: pd.DataFrame) -> tuple[str, pd.DataFrame]:

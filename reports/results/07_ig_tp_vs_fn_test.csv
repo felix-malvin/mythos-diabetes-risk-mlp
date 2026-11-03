@@ -1,0 +1,22 @@
+,nama,true positive (pp),false negative (pp),selisih (pp)
+GenHlth,Kesehatan umum,7.534292,-0.912991,-8.447283
+BMI,Indeks massa tubuh,3.8597279,-1.9520876,-5.8118153
+HighBP,Tekanan darah tinggi,4.3500614,-0.1486849,-4.4987464
+Age,Kelompok usia,1.84552,-0.69143844,-2.5369585
+HighChol,Kolesterol tinggi,2.1452317,-0.35850188,-2.5037336
+HeartDiseaseorAttack,Penyakit jantung,0.5993091,-0.37478146,-0.9740906
+Income,Pendapatan,0.61579144,-0.31964454,-0.935436
+MentHlth,Hari kesehatan mental buruk,0.5522913,1.2852384,0.7329471
+HvyAlcoholConsump,Konsumsi alkohol berat,0.5339811,-0.16612679,-0.7001079
+Stroke,Riwayat stroke,0.34704557,-0.11057423,-0.4576198
+PhysHlth,Hari kesehatan fisik buruk,0.019785602,0.46197557,0.44218996
+Smoker,Pernah merokok,-0.29897878,0.11147369,0.41045246
+CholCheck,Cek kolesterol,0.5982181,0.23787795,-0.36034012
+DiffWalk,Kesulitan berjalan,0.19614576,-0.07756419,-0.27370995
+Fruits,Konsumsi buah,-0.34291455,-0.1804968,0.16241775
+Education,Pendidikan,-0.16931005,-0.3191895,-0.14987944
+NoDocbcCost,Tidak ke dokter karena biaya,-0.18157668,-0.05217464,0.12940204
+Veggies,Konsumsi sayur,-0.093449324,-0.19357382,-0.10012449
+PhysActivity,Aktivitas fisik,-0.0052606114,-0.10532344,-0.10006283
+Sex,Jenis kelamin,-0.5546586,-0.45603374,0.098624855
+AnyHealthcare,Jaminan kesehatan,-0.07845778,-0.03531966,0.04313812

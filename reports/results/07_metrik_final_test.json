@@ -1,0 +1,67 @@
+{
+  "model": "models/mlp_final.keras",
+  "sha256_model": "dbb016120af20624e85039532c242497ecd3be6a063a875e8111b2781aca55ef",
+  "test_fingerprint": "01b58633cb6f22b5",
+  "threshold": 0.13,
+  "jumlah_test": 34332,
+  "jumlah_diabetes_test": 5253,
+  "metrik": {
+    "PR-AUC": 0.4318,
+    "ROC-AUC": 0.8128,
+    "Recall (sensitivitas)": 0.8094,
+    "Precision": 0.3043,
+    "Specificity": 0.6657,
+    "F1-score": 0.4423,
+    "F2-score": 0.6077,
+    "Accuracy": 0.6877,
+    "Persen ditandai berisiko": 0.407
+  },
+  "confusion_matrix": {
+    "tn": 19358,
+    "fp": 9721,
+    "fn": 1001,
+    "tp": 4252
+  },
+  "ci95_bootstrap": {
+    "PR-AUC": [
+      0.4175,
+      0.4464
+    ],
+    "ROC-AUC": [
+      0.8072,
+      0.8183
+    ],
+    "Recall (sensitivitas)": [
+      0.7984,
+      0.8195
+    ],
+    "Precision": [
+      0.2966,
+      0.3124
+    ],
+    "Specificity": [
+      0.6605,
+      0.6707
+    ],
+    "F1-score": [
+      0.4336,
+      0.4513
+    ],
+    "F2-score": [
+      0.5987,
+      0.6166
+    ],
+    "Accuracy": [
+      0.6828,
+      0.6923
+    ]
+  },
+  "tanpa_fitur_unik_threshold_05": {
+    "recall": 0.1114,
+    "precision": 0.6277,
+    "f1": 0.1892,
+    "f2": 0.1333,
+    "accuracy": 0.8539
+  },
+  "brier_score": 0.1065
+}

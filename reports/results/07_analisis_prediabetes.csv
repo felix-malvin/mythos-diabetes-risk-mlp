@@ -1,0 +1,4 @@
+kelompok,jumlah,rata_rata_probabilitas,median_probabilitas,persen_ditandai_berisiko
+Tidak diabetes,28415,0.110736765,0.06465816,32.651768432166115
+Prediabetes,664,0.22204629,0.20170847,66.71686746987952
+Diabetes,5253,0.2829478,0.26447576,80.94422234913384

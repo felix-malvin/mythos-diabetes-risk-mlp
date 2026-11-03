@@ -78,6 +78,21 @@ Notebook model cukup memanggil `prepare_datasets()` dari `src/preprocessing.py`.
 
 Probabilitas >= 0,13 dikategorikan berisiko diabetes. Prediksi dan penjelasan untuk satu responden dibuat dengan `src/inference.py` (`load_artifacts()` dan `predict_and_explain()`). Hasil ini adalah estimasi risiko, bukan diagnosis medis.
 
+## Hasil Evaluasi Final (Data Test)
+
+Data test (34.332 responden, 5.253 diabetes) hanya dipakai sekali di `07_evaluasi_final.ipynb`. Angka di bawah bersumber dari `reports/results/07_metrik_final_test.json`.
+
+| Metrik | Threshold 0,5 (tanpa fitur unik) | Threshold 0,13 (model final) | IK 95% model final |
+|---|---|---|---|
+| Recall | 11,14% | **80,94%** | 79,84% - 81,95% |
+| Precision | 62,77% | 30,43% | 29,66% - 31,24% |
+| F2-score | 0,1333 | **0,6077** | 0,5987 - 0,6166 |
+| Accuracy | 85,39% | 68,77% | 68,28% - 69,23% |
+| PR-AUC | 0,4318 | 0,4318 | 0,4175 - 0,4464 |
+| ROC-AUC | 0,8128 | 0,8128 | 0,8072 - 0,8183 |
+
+Keterbatasan utama: 40,70% responden ditandai berisiko, recall pada usia 18-44 tahun hanya 45,70%, dan label berasal dari pengakuan responden survei. Model ini adalah alat skrining awal, bukan diagnosis medis.
+
 ## Susunan Notebook
 
 | Notebook | Isi | Penanggung jawab |
@@ -102,6 +117,6 @@ Notebook 03, 04, 04b, dan 05 melatih banyak model (masing-masing sekitar 30 samp
 - [x] Fase 3c-2: uji konfirmasi Random Search KerasTuner, konfigurasi diganti (notebook 04b)
 - [x] Fase 3d: fitur unik 1, threshold F2 (notebook 05). Model final dibekukan
 - [x] Fase 3e: fitur unik 2, Integrated Gradients (notebook 06)
-- [ ] Fase 3f: evaluasi final di data test (notebook 07)
+- [x] Fase 3f: evaluasi final di data test (notebook 07)
 - [ ] Fase 4: penyelesaian Tugas 1
 - [ ] Fase 5: aplikasi dan deployment (UTS)

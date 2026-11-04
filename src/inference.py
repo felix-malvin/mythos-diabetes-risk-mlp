@@ -67,7 +67,7 @@ def integrated_gradients(model: keras.Model, X: np.ndarray, baseline: np.ndarray
 
 
 def expected_gradients(model: keras.Model, X: np.ndarray, baselines: np.ndarray, steps: int = 16) -> np.ndarray:
-    """Rata-rata IG terhadap banyak baseline (Erion dkk., 2021). Dipakai untuk uji sensitivitas baseline."""
+    """Rata-rata IG terhadap banyak baseline. Dipakai untuk uji sensitivitas baseline."""
     hasil = [integrated_gradients(model, X, b, steps=steps) for b in np.asarray(baselines, dtype=np.float32)]
     return np.mean(hasil, axis=0)
 

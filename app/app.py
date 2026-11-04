@@ -21,7 +21,7 @@ st.set_page_config(page_title="Cek Risiko Diabetes", page_icon="🩺", layout="w
 
 THRESHOLD_BAWAAN = 0.5
 LABEL_012 = {0: "Tidak diabetes", 1: "Prediabetes", 2: "Diabetes"}
-GITHUB_URL = "https://github.com/felix-malvin/mythos_diabetes_risk_mlp" 
+GITHUB_URL = "https://github.com/felix-malvin/mythos-diabetes-risk-mlp.git" 
 
 
 # ---------------------------------------------------------------------------
@@ -309,7 +309,7 @@ def halaman_cek() -> None:
 
 
 def halaman_contoh(halaman_cek_obj) -> None:
-    st.title("Contoh Kasus dari Data Test")
+    st.title("Contoh Kasus dari Data Testing")
     data = muat_json("app/contoh_kasus.json")
     thr = muat_artefak()["model_config"]["threshold"]
     st.markdown("Responden di bawah adalah data asli dari data test yang tidak pernah dipakai saat training. "

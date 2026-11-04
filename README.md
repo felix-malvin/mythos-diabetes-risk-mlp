@@ -33,8 +33,10 @@ mythos_diabetes_risk_mlp/
 ├── src/           # kode yang dipakai bersama oleh notebook dan aplikasi
 ├── models/        # scaler.joblib, preprocessing_config.json, model final
 ├── reports/       # figures/ (grafik) dan results/ (metrik dalam csv)
-├── app/           # aplikasi deployment (UTS)
-└── docs/          # laporan PDF dan screenshot deployment
+├── app/           # aplikasi Streamlit (UTS): app.py, contoh_kasus.json, requirements.txt
+├── tests/         # pengujian otomatis aplikasi dan inferensi
+├── .streamlit/    # tema dan konfigurasi Streamlit
+└── docs/          # laporan, panduan deployment, dan screenshot
 ```
 
 ## Cara Menjalankan
@@ -42,7 +44,7 @@ mythos_diabetes_risk_mlp/
 Disarankan memakai **Python 3.12**.
 
 ```bash
-git clone https://github.com/felix-malvin/mythos_diabetes_risk_mlp.git
+git clone https://github.com/felix-malvin/mythos-diabetes-risk-mlp.git
 cd mythos_diabetes_risk_mlp
 
 python -m venv .venv
@@ -93,6 +95,27 @@ Data test (34.332 responden, 5.253 diabetes) hanya dipakai sekali di `07_evaluas
 
 Keterbatasan utama: 40,70% responden ditandai berisiko, recall pada usia 18-44 tahun hanya 45,70%, dan label berasal dari pengakuan responden survei. Model ini adalah alat skrining awal, bukan diagnosis medis.
 
+## Aplikasi (UTS)
+
+Aplikasi web Streamlit di `app/app.py` memakai model final yang sama persis dengan laporan (tidak ada training ulang).
+
+| Halaman | Isi |
+|---|---|
+| Cek Risiko | Form 21 pertanyaan (BMI bisa dihitung dari tinggi dan berat badan), probabilitas dan kategori risiko, perbandingan threshold 0,13 dengan threshold bawaan 0,5 (fitur unik 1), grafik kontribusi Integrated Gradients (fitur unik 2) |
+| Contoh Kasus | Lima responden asli dari data test (TP, TN, FP, FP prediabetes, FN), dipilih dengan aturan tetap: probabilitas paling dekat ke median kategorinya |
+| Tentang Model | Metrik data test dari `reports/results/07_metrik_final_test.json`, confusion matrix, arsitektur, keterbatasan |
+
+Menjalankan aplikasi dan pengujian dari root repository:
+
+```bash
+streamlit run app/app.py
+python -m pytest tests -q
+```
+
+- **Link aplikasi:** [isi setelah deploy, contoh https://prediksi-risiko-diabetes-mlp.streamlit.app]
+- **Dependensi server:** `app/requirements.txt` (Streamlit Community Cloud membaca file ini lebih dulu daripada `requirements.txt` di root)
+- **Panduan deploy dan daftar screenshot laporan:** [`docs/panduan_deployment.md`](docs/panduan_deployment.md)
+
 ## Susunan Notebook
 
 | Notebook | Isi | Penanggung jawab |
@@ -118,5 +141,7 @@ Notebook 03, 04, 04b, dan 05 melatih banyak model (masing-masing sekitar 30 samp
 - [x] Fase 3d: fitur unik 1, threshold F2 (notebook 05). Model final dibekukan
 - [x] Fase 3e: fitur unik 2, Integrated Gradients (notebook 06)
 - [x] Fase 3f: evaluasi final di data test (notebook 07)
-- [ ] Fase 4: penyelesaian Tugas 1
-- [ ] Fase 5: aplikasi dan deployment (UTS)
+- [x] Fase 4: laporan Tugas 1
+- [x] Fase 5a: aplikasi Streamlit dan pengujian otomatis
+- [ ] Fase 5b: deploy ke Streamlit Community Cloud, screenshot, dan video demo
+- [ ] Fase 6: laporan UTS

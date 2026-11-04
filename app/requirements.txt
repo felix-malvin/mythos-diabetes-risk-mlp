@@ -1,0 +1,12 @@
+# Dependensi khusus aplikasi untuk Streamlit Community Cloud.
+# Community Cloud membaca file ini lebih dulu daripada requirements.txt di root,
+# jadi library yang hanya dipakai notebook (KerasTuner, seaborn, dll.) tidak ikut terpasang.
+# Versi dikunci sama dengan environment training supaya model dan scaler termuat identik.
+tensorflow==2.21.0
+keras==3.15.1
+numpy==2.5.4
+pandas==3.1.0
+scikit-learn==1.9.1
+joblib==1.6.0
+streamlit==1.66.1
+altair==6.3.0

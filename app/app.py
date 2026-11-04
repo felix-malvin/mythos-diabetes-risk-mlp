@@ -178,3 +178,98 @@ def form_input() -> tuple[dict | None, str | None]:
     values = {c: int(st.session_state[f"f_{c}"]) for c in config.FEATURE_COLS if c != "BMI"}
     values["BMI"] = bmi
     return values, None
+
+
+# ---------------------------------------------------------------------------
+# Tampilan hasil
+# ---------------------------------------------------------------------------
+def grafik_threshold(prob: float, thr: float) -> alt.Chart:
+    """Pita probabilitas 0 sampai 1, zona berisiko (merah muda), dua garis threshold, dan posisi responden."""
+    X = alt.X("x:Q", scale=alt.Scale(domain=[0, 1]), axis=alt.Axis(format="%", title="Probabilitas diabetes"))
+    Y = alt.Y("y:Q", scale=alt.Scale(domain=[0, 1]), axis=None)
+    pita = pd.DataFrame({"x": [0.0, thr], "x2": [1.0, 1.0], "y": [0.38, 0.38], "y2": [0.62, 0.62],
+                         "warna": ["#e9eef3", "#f6d5cf"]})
+    dasar = alt.Chart(pita).mark_rect().encode(x=X, x2="x2:Q", y=Y, y2="y2:Q", color=alt.Color("warna:N", scale=None))
+    garis = pd.DataFrame({"x": [thr, THRESHOLD_BAWAAN], "y": [0.2, 0.2], "y2": [0.8, 0.8],
+                          "teks": [f"threshold model {angka(thr, 2)}", f"threshold bawaan {angka(THRESHOLD_BAWAAN, 1)}"],
+                          "warna": ["#c0392b", "#555555"], "yt": [0.92, 0.92]})
+    rule = alt.Chart(garis).mark_rule(strokeWidth=2.5).encode(x="x:Q", y="y:Q", y2="y2:Q",
+                                                              color=alt.Color("warna:N", scale=None))
+    label = alt.Chart(garis).mark_text(align="left", dx=5, fontSize=12).encode(
+        x="x:Q", y="yt:Q", text="teks:N", color=alt.Color("warna:N", scale=None))
+    titik = alt.Chart(pd.DataFrame({"x": [prob], "y": [0.5], "yt": [0.06], "teks": [f"responden {persen(prob, 1)}"]}))
+    poin_ = titik.mark_point(shape="diamond", size=260, filled=True, color="#1f3b73", opacity=1).encode(x="x:Q", y="y:Q")
+    tp = titik.mark_text(fontSize=12, fontWeight="bold", color="#1f3b73").encode(x="x:Q", y="yt:Q", text="teks:N")
+    return (dasar + rule + label + poin_ + tp).properties(height=130)
+
+
+def grafik_kontribusi(kontribusi: pd.DataFrame, n: int = 10) -> alt.Chart:
+    top = kontribusi.head(n).copy()
+    top["poin"] = top["kontribusi"] * 100
+    top["arah"] = top["poin"].apply(lambda v: "Menaikkan risiko" if v > 0 else "Menurunkan risiko")
+    top["label"] = top["nama"] + ": " + top["nilai"].astype(str)
+    top["teks"] = top["poin"].map(lambda v: f"{v:+.1f}".replace(".", ","))
+    urutan = top["label"].tolist()
+    batang = alt.Chart(top).mark_bar().encode(
+        x=alt.X("poin:Q", title="Kontribusi (poin persen probabilitas)"),
+        y=alt.Y("label:N", sort=urutan, title=None, axis=alt.Axis(labelLimit=320)),
+        color=alt.Color("arah:N", scale=alt.Scale(domain=["Menaikkan risiko", "Menurunkan risiko"],
+                                                   range=["#c0392b", "#2e6db4"]),
+                        legend=alt.Legend(title=None, orient="bottom")),
+        tooltip=[alt.Tooltip("label:N", title="Faktor"), alt.Tooltip("teks:N", title="Poin persen")])
+    teks_neg = alt.Chart(top[top["poin"] < 0]).mark_text(align="right", dx=-4, color="#333").encode(
+        x="poin:Q", y=alt.Y("label:N", sort=urutan), text="teks:N")
+    nol = alt.Chart(pd.DataFrame({"x": [0]})).mark_rule(color="#555").encode(x="x:Q")
+    teks_pos = alt.Chart(top[top["poin"] > 0]).mark_text(align="left", dx=4, color="#333").encode(
+        x="poin:Q", y=alt.Y("label:N", sort=urutan), text="teks:N")
+    return (batang + nol + teks_pos + teks_neg).properties(height=34 * len(top) + 40)
+
+
+def tampilkan_hasil(h: dict, values: dict) -> None:
+    prob, thr = h["probabilitas"], h["threshold"]
+    berisiko = prob >= thr
+    st.divider()
+    st.subheader("Hasil")
+    c1, c2, c3 = st.columns([1.1, 1, 1])
+    c1.metric("Probabilitas diabetes (estimasi model)", persen(prob, 1))
+    if berisiko:
+        c2.error("**Berisiko diabetes**\n\nDisarankan memeriksakan gula darah di fasilitas kesehatan.")
+    else:
+        c2.success("**Risiko rendah**\n\nTetap jaga pola hidup sehat dan lakukan pemeriksaan rutin.")
+    c3.info("Hasil ini estimasi skrining dari data survei, **bukan diagnosis medis**.")
+
+    # ---------------- Fitur unik 1 ----------------
+    st.markdown("#### Fitur unik 1: Threshold untuk data tidak seimbang")
+    st.altair_chart(grafik_threshold(prob, thr), width="stretch")
+    b1, b2 = st.columns(2)
+    kat_model = "Berisiko diabetes" if berisiko else "Risiko rendah"
+    kat_bawaan = "Berisiko diabetes" if prob >= THRESHOLD_BAWAAN else "Risiko rendah"
+    b1.markdown(f"**Threshold model ({angka(thr, 2)})**  \nKeputusan: **{kat_model}**")
+    b2.markdown(f"**Threshold bawaan ({angka(THRESHOLD_BAWAAN, 1)})**  \nKeputusan: **{kat_bawaan}**")
+    if thr <= prob < THRESHOLD_BAWAAN:
+        st.warning(f"Responden ini **hanya tertangkap karena threshold {angka(thr, 2)}**. Dengan threshold bawaan "
+                   f"{angka(THRESHOLD_BAWAAN, 1)}, probabilitas {persen(prob, 1)} akan dianggap risiko rendah.")
+    st.caption("Threshold 0,13 dipilih dari data validation dengan kriteria F2 maksimum (recall dianggap dua kali "
+               "lebih penting dari precision). Di data test, recall naik dari 11,14% pada threshold 0,5 menjadi "
+               "80,94% pada threshold 0,13. Harganya, precision turun menjadi 30,43%, sehingga sebagian orang "
+               "yang ditandai berisiko sebenarnya tidak diabetes.")
+
+    # ---------------- Fitur unik 2 ----------------
+    st.markdown("#### Fitur unik 2: Faktor yang memengaruhi perhitungan model (Integrated Gradients)")
+    base = h["baseline_tepat"]
+    total = float(h["kontribusi"]["kontribusi"].sum())
+    selisih = prob - base - total
+    st.markdown(f"Pembanding: **profil responden rata-rata** dengan risiko {persen(base, 1)}. "
+                f"Merah menaikkan risiko, biru menurunkan risiko, dalam poin persen.")
+    st.altair_chart(grafik_kontribusi(h["kontribusi"]), width="stretch")
+    st.caption(f"Cek completeness: {persen(base, 2)} (baseline) {poin(total)} poin (jumlah 21 kontribusi) = "
+               f"{persen(base + total, 2)}, sedangkan probabilitas model {persen(prob, 2)}. Selisihnya "
+               f"{angka(abs(selisih) * 100, 3)} poin, dihitung dengan 128 langkah integrasi.")
+    with st.expander("Lihat kontribusi semua 21 faktor"):
+        tabel = h["kontribusi"][["nama", "nilai", "kontribusi"]].copy()
+        tabel["kontribusi"] = tabel["kontribusi"].map(poin)
+        tabel.columns = ["Faktor", "Jawaban", "Kontribusi (poin persen)"]
+        st.dataframe(tabel, hide_index=True, width="stretch")
+    st.caption("Penjelasan ini menunjukkan pola yang dipakai model, bukan hubungan sebab akibat dan bukan saran medis. "
+               "Contohnya pendapatan atau kesehatan mental bisa menggeser perhitungan model, tetapi bukan berarti "
+               "faktor tersebut menyebabkan diabetes.")

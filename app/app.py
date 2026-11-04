@@ -99,3 +99,82 @@ def isi_form(values: dict, sumber: str | None = None, mode_bmi: str = MODE_LANGS
 def pastikan_state() -> None:
     if "f_HighBP" not in st.session_state:
         isi_form(NILAI_AWAL, mode_bmi=MODE_HITUNG)
+
+
+# ---------------------------------------------------------------------------
+# Komponen form
+# ---------------------------------------------------------------------------
+def ya_tidak(col: str, pertanyaan: str, bantuan: str | None = None) -> None:
+    st.radio(pertanyaan, options=[1, 0], format_func=lambda v: config.YES_NO_LABELS[v],
+             horizontal=True, key=f"f_{col}", help=bantuan)
+
+
+def pilihan(col: str, pertanyaan: str, label: dict, bantuan: str | None = None) -> None:
+    st.selectbox(pertanyaan, options=list(label.keys()), format_func=lambda v: label[v],
+                 key=f"f_{col}", help=bantuan)
+
+
+def bagian_bmi() -> tuple[int | None, str | None]:
+    """Mengembalikan (BMI bulat, pesan kesalahan)."""
+    lo, hi = 12, config.BMI_MAX_VALID
+    mode = st.radio("Cara mengisi BMI", [MODE_HITUNG, MODE_LANGSUNG], horizontal=True, key="mode_bmi")
+    if mode == MODE_LANGSUNG:
+        bmi = st.number_input(f"BMI (bilangan bulat, {lo} sampai {hi})", min_value=lo, max_value=hi,
+                              step=1, key="bmi_langsung")
+        return int(bmi), None
+    c1, c2 = st.columns(2)
+    tinggi = c1.number_input("Tinggi badan (cm)", min_value=100, max_value=230, step=1, key="tinggi")
+    berat = c2.number_input("Berat badan (kg)", min_value=25, max_value=250, step=1, key="berat")
+    bmi_float = berat / (tinggi / 100) ** 2
+    bmi = int(round(bmi_float))
+    st.caption(f"BMI = {berat} / ({tinggi / 100:.2f} x {tinggi / 100:.2f}) = {bmi_float:.1f}, "
+               f"dibulatkan menjadi **{bmi}** karena data training memakai BMI bilangan bulat.")
+    if not lo <= bmi <= hi:
+        return None, (f"BMI {bmi} di luar rentang data training ({lo} sampai {hi}). "
+                      "Model tidak bisa memberi estimasi yang dapat dipercaya untuk nilai ini.")
+    return bmi, None
+
+
+def form_input() -> tuple[dict | None, str | None]:
+    pastikan_state()
+    k1, k2 = st.columns(2, gap="large")
+    with k1:
+        st.markdown("##### Data diri")
+        st.radio("Jenis kelamin", options=[0, 1], format_func=lambda v: config.SEX_LABELS[v],
+                 horizontal=True, key="f_Sex")
+        pilihan("Age", "Kelompok usia", {k: f"{v} tahun" for k, v in config.AGE_LABELS.items()})
+        pilihan("Education", "Pendidikan terakhir", config.EDUCATION_LABELS)
+        pilihan("Income", "Pendapatan tahunan rumah tangga (USD)", config.INCOME_LABELS,
+                "Kategori mengikuti survei BRFSS 2015 di Amerika Serikat, dalam dolar AS.")
+        st.markdown("##### Ukuran tubuh")
+        bmi, galat = bagian_bmi()
+        st.markdown("##### Gaya hidup")
+        ya_tidak("Smoker", "Pernah merokok minimal 100 batang (5 bungkus) seumur hidup",
+                 "Bukan status merokok saat ini, sesuai definisi pertanyaan survei.")
+        ya_tidak("PhysActivity", "Berolahraga atau beraktivitas fisik di luar pekerjaan dalam 30 hari terakhir")
+        ya_tidak("Fruits", "Makan buah minimal 1 kali sehari")
+        ya_tidak("Veggies", "Makan sayur minimal 1 kali sehari")
+        ya_tidak("HvyAlcoholConsump", "Minum alkohol berat",
+                 "Laki-laki lebih dari 14 minuman per minggu, perempuan lebih dari 7 minuman per minggu.")
+    with k2:
+        st.markdown("##### Riwayat kesehatan")
+        ya_tidak("HighBP", "Pernah dinyatakan dokter memiliki tekanan darah tinggi")
+        ya_tidak("HighChol", "Pernah dinyatakan dokter memiliki kolesterol tinggi")
+        ya_tidak("CholCheck", "Cek kolesterol dalam 5 tahun terakhir")
+        ya_tidak("Stroke", "Pernah dinyatakan mengalami stroke")
+        ya_tidak("HeartDiseaseorAttack", "Pernah mengalami penyakit jantung koroner atau serangan jantung")
+        ya_tidak("DiffWalk", "Kesulitan serius saat berjalan atau naik tangga")
+        st.markdown("##### Kondisi 30 hari terakhir")
+        pilihan("GenHlth", "Secara umum, kesehatan Anda", config.GENHLTH_LABELS)
+        st.number_input("Jumlah hari kondisi mental terasa tidak baik (stres, depresi, masalah emosi)",
+                        min_value=0, max_value=30, step=1, key="f_MentHlth")
+        st.number_input("Jumlah hari kondisi fisik terasa tidak baik (sakit atau cedera)",
+                        min_value=0, max_value=30, step=1, key="f_PhysHlth")
+        st.markdown("##### Akses layanan kesehatan")
+        ya_tidak("AnyHealthcare", "Memiliki jaminan atau asuransi kesehatan apa pun")
+        ya_tidak("NoDocbcCost", "Dalam 12 bulan terakhir pernah batal ke dokter karena biaya")
+    if galat:
+        return None, galat
+    values = {c: int(st.session_state[f"f_{c}"]) for c in config.FEATURE_COLS if c != "BMI"}
+    values["BMI"] = bmi
+    return values, None

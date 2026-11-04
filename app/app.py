@@ -273,3 +273,127 @@ def tampilkan_hasil(h: dict, values: dict) -> None:
     st.caption("Penjelasan ini menunjukkan pola yang dipakai model, bukan hubungan sebab akibat dan bukan saran medis. "
                "Contohnya pendapatan atau kesehatan mental bisa menggeser perhitungan model, tetapi bukan berarti "
                "faktor tersebut menyebabkan diabetes.")
+    
+
+# ---------------------------------------------------------------------------
+# Halaman
+# ---------------------------------------------------------------------------
+def halaman_cek() -> None:
+    st.title("🩺 Cek Risiko Diabetes")
+    st.markdown("Isi 21 pertanyaan berikut sesuai kondisi Anda. Model MLP akan memperkirakan risiko diabetes "
+                "dan menjelaskan faktor yang paling memengaruhi hasilnya.")
+    if st.session_state.get("sumber_input"):
+        st.info(f"Form diisi dari contoh kasus: **{st.session_state['sumber_input']}**. Ubah jawaban mana pun "
+                "lalu tekan tombol di bawah untuk menghitung ulang.")
+    values, galat = form_input()
+    a, b, _ = st.columns([1, 1, 3])
+    hitung = a.button("Hitung risiko", type="primary", width="stretch")
+    b.button("Kosongkan form", width="stretch", on_click=isi_form, args=(NILAI_AWAL,), kwargs={"mode_bmi": MODE_HITUNG})
+    if hitung:
+        if galat:
+            st.error(galat)
+            st.session_state.pop("hasil", None)
+        else:
+            try:
+                st.session_state["hasil"] = (prediksi(values), values)
+            except ValueError as e:
+                st.error(f"Input tidak valid: {e}")
+    if galat and "hasil" in st.session_state:
+        st.session_state.pop("hasil", None)
+    if "hasil" in st.session_state:
+        hasil, nilai = st.session_state["hasil"]
+        if nilai == values:
+            tampilkan_hasil(hasil, nilai)
+        else:
+            st.caption("Jawaban berubah setelah perhitungan terakhir. Tekan **Hitung risiko** untuk memperbarui hasil.")
+
+
+def halaman_contoh(halaman_cek_obj) -> None:
+    st.title("Contoh Kasus dari Data Test")
+    data = muat_json("app/contoh_kasus.json")
+    thr = muat_artefak()["model_config"]["threshold"]
+    st.markdown("Responden di bawah adalah data asli dari data test yang tidak pernah dipakai saat training. "
+                "Untuk setiap kategori dipilih responden dengan probabilitas **paling dekat ke median** kategorinya, "
+                "jadi contoh ini mewakili kasus yang tipikal, bukan kasus yang dipilih agar model terlihat bagus. "
+                "Label prediabetes diambil dari file pembanding `Diabetes_012` pada dataset yang sama.")
+    for k in data["kasus"]:
+        v = k["nilai"]
+        benar = (k["prob"] >= thr) == (k["label"] == 1)
+        with st.container(border=True):
+            c1, c2 = st.columns([3, 1.2])
+            with c1:
+                st.markdown(f"**{'✅' if benar else '❌'} {k['judul']}**")
+                st.markdown(
+                    f"Label asli: **{config.CLASS_LABELS[k['label']]}** (Diabetes_012: {LABEL_012[k['label_012']]})  \n"
+                    f"Probabilitas model: **{persen(k['prob'], 1)}**, keputusan: "
+                    f"**{'Berisiko diabetes' if k['prob'] >= thr else 'Risiko rendah'}**")
+                ringkas = (f"{config.SEX_LABELS[v['Sex']]}, {config.AGE_LABELS[v['Age']]} tahun, BMI {v['BMI']}, "
+                           f"kesehatan umum {config.GENHLTH_LABELS[v['GenHlth']].lower()}, "
+                           f"tekanan darah tinggi {config.YES_NO_LABELS[v['HighBP']].lower()}, "
+                           f"kolesterol tinggi {config.YES_NO_LABELS[v['HighChol']].lower()}")
+                st.caption(ringkas)
+                st.caption(f"Kategori ini berisi {ribuan(k['jumlah_di_kategori'])} responden di data test, median "
+                           f"probabilitasnya {persen(k['median_prob_kategori'], 1)}.")
+            with c2:
+                if st.button("Muat ke form", key=f"muat_{k['kode']}", width="stretch",
+                             on_click=isi_form, args=(v,), kwargs={"sumber": k["judul"]}):
+                    st.switch_page(halaman_cek_obj)
+
+
+def halaman_tentang() -> None:
+    st.title("Tentang Model")
+    m = muat_json("reports/results/07_metrik_final_test.json")
+    cfg = muat_artefak()["model_config"]
+    st.markdown(
+        f"Model adalah **Multilayer Perceptron** [128-64-32-16] dengan BatchNorm, L2 1e-6, ReLU, dan output sigmoid "
+        f"(14.417 parameter), dilatih dengan Adam dan binary cross-entropy pada **Diabetes Health Indicators Dataset** "
+        f"(BRFSS 2015, CDC). Keputusan memakai threshold **{angka(cfg['threshold'], 2)}**. Semua angka di halaman ini "
+        f"berasal dari evaluasi sekali di data test ({ribuan(m['jumlah_test'])} responden, "
+        f"{ribuan(m['jumlah_diabetes_test'])} diabetes).")
+    nama = {"Recall (sensitivitas)": "Recall (sensitivitas)", "Precision": "Precision", "Specificity": "Specificity",
+            "F1-score": "F1-score", "F2-score": "F2-score", "Accuracy": "Accuracy", "PR-AUC": "PR-AUC", "ROC-AUC": "ROC-AUC"}
+    baris = []
+    for k in nama:
+        val = m["metrik"][k]
+        lo, hi = m["ci95_bootstrap"][k]
+        pakai_persen = k in ("Recall (sensitivitas)", "Precision", "Specificity", "Accuracy")
+        f = (lambda x: persen(x, 2)) if pakai_persen else (lambda x: angka(x, 4))
+        baris.append({"Metrik": k, "Nilai di data test": f(val), "IK 95% (bootstrap)": f"{f(lo)} sampai {f(hi)}"})
+    k1, k2 = st.columns([1.2, 1])
+    with k1:
+        st.markdown("##### Performa di data test")
+        st.dataframe(pd.DataFrame(baris), hide_index=True, width="stretch")
+        t = m["tanpa_fitur_unik_threshold_05"]
+        st.caption(f"Tanpa fitur unik (threshold 0,5): recall {persen(t['recall'])}, precision {persen(t['precision'])}, "
+                   f"F2 {angka(t['f2'])}.")
+    with k2:
+        st.markdown("##### Confusion matrix (threshold 0,13)")
+        st.image(str(ROOT / "reports/figures/eval_01_confusion_matrix_test.png"), width="stretch")
+    st.markdown("##### Arsitektur")
+    st.image(str(ROOT / "reports/figures/lap_01_arsitektur_final.png"), width="stretch")
+    st.markdown("##### Keterbatasan")
+    st.markdown(
+        "- Ini alat **skrining awal**, bukan diagnosis. Dari 10 orang yang ditandai berisiko, sekitar 3 yang benar diabetes.\n"
+        "- Recall pada usia 18 sampai 44 tahun hanya 45,70%, jauh di bawah usia 65 tahun ke atas (86,85%). Hasil "
+        "\"risiko rendah\" pada pengguna muda kurang bisa diandalkan.\n"
+        "- Label berasal dari pengakuan responden survei telepon di Amerika Serikat tahun 2015, sehingga belum tentu "
+        "berlaku sama untuk populasi lain.\n"
+        "- Probabilitas cenderung sedikit lebih rendah dari kenyataan (rata-rata 13,92% berbanding 15,30% di data test).\n"
+        "- Penderita yang profil jawabannya terlihat sehat sulit dikenali dari kuesioner saja.")
+    st.markdown(f"Source code: [{GITHUB_URL}]({GITHUB_URL})")
+
+
+def main() -> None:
+    pastikan_state()
+    p_cek = st.Page(halaman_cek, title="Cek Risiko", icon="🩺", default=True)
+    p_contoh = st.Page(lambda: halaman_contoh(p_cek), title="Contoh Kasus", icon="🧪", url_path="contoh-kasus")
+    p_tentang = st.Page(halaman_tentang, title="Tentang Model", icon="📊", url_path="tentang-model")
+    nav = st.navigation([p_cek, p_contoh, p_tentang])
+    with st.sidebar:
+        st.markdown("**Prediksi Risiko Diabetes dengan MLP**")
+        st.caption("Proyek UTS Pembelajaran Mendalam, Semester Ganjil TA 2026-2027.")
+        st.caption("Hasil aplikasi adalah estimasi risiko berbasis data survei, bukan diagnosis medis.")
+    nav.run()
+
+
+main()

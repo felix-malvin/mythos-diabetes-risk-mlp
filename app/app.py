@@ -64,3 +64,38 @@ def ribuan(n: int) -> str:
 def poin(x: float, d: int = 2) -> str:
     """Selisih probabilitas dalam poin persen dengan tanda, format Indonesia."""
     return f"{x * 100:+.{d}f}".replace(".", ",")
+
+
+# ---------------------------------------------------------------------------
+# Nilai awal form
+# ---------------------------------------------------------------------------
+NILAI_AWAL = {
+    "HighBP": 0, "HighChol": 0, "CholCheck": 1, "BMI": 27, "Smoker": 0, "Stroke": 0,
+    "HeartDiseaseorAttack": 0, "PhysActivity": 1, "Fruits": 1, "Veggies": 1,
+    "HvyAlcoholConsump": 0, "AnyHealthcare": 1, "NoDocbcCost": 0, "GenHlth": 3,
+    "MentHlth": 0, "PhysHlth": 0, "DiffWalk": 0, "Sex": 0, "Age": 8, "Education": 4, "Income": 6,
+}
+
+
+MODE_HITUNG, MODE_LANGSUNG = "Hitung dari tinggi dan berat badan", "Isi BMI langsung"
+
+
+def isi_form(values: dict, sumber: str | None = None, mode_bmi: str = MODE_LANGSUNG) -> None:
+    """Mengisi semua widget form lewat session_state. Dipakai juga oleh halaman contoh kasus.
+
+    Contoh kasus dari data test hanya punya nilai BMI, jadi mode BMI-nya "Isi BMI langsung".
+    Form kosong memakai mode tinggi dan berat badan karena lebih mudah untuk pengguna awam.
+    """
+    for c in config.FEATURE_COLS:
+        st.session_state[f"f_{c}"] = int(values[c])
+    st.session_state["mode_bmi"] = mode_bmi
+    st.session_state["bmi_langsung"] = int(values["BMI"])
+    st.session_state["tinggi"] = 165
+    st.session_state["berat"] = 70
+    st.session_state["sumber_input"] = sumber
+    st.session_state.pop("hasil", None)
+
+
+def pastikan_state() -> None:
+    if "f_HighBP" not in st.session_state:
+        isi_form(NILAI_AWAL, mode_bmi=MODE_HITUNG)

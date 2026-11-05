@@ -112,9 +112,8 @@ streamlit run app/app.py
 python -m pytest tests -q
 ```
 
-- **Link aplikasi:** [isi setelah deploy, contoh https://prediksi-risiko-diabetes-mlp.streamlit.app]
-- **Dependensi server:** `app/requirements.txt` (Streamlit Community Cloud membaca file ini lebih dulu daripada `requirements.txt` di root)
-- **Panduan deploy dan daftar screenshot laporan:** [`docs/panduan_deployment.md`](docs/panduan_deployment.md)
+- **Link aplikasi:** https://mythos-diabetes-risk-mlp.streamlit.app/
+- **Dependensi server:** `app/requirements.txt` 
 
 ## Susunan Notebook
 

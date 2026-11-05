@@ -11,3 +11,4 @@ streamlit==1.66.1
 ipykernel==7.4.0
 keras-tuner==1.4.8
 tensorboard==2.21.0
+pytest==9.2.0

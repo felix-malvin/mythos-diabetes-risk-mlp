@@ -142,5 +142,5 @@ Notebook 03, 04, 04b, dan 05 melatih banyak model (masing-masing sekitar 30 samp
 - [x] Fase 3f: evaluasi final di data test (notebook 07)
 - [x] Fase 4: laporan Tugas 1
 - [x] Fase 5a: aplikasi Streamlit dan pengujian otomatis
-- [ ] Fase 5b: deploy ke Streamlit Community Cloud, screenshot, dan video demo
-- [ ] Fase 6: laporan UTS
+- [x] Fase 5b: screenshot aplikasi
+- [x] Fase 6: laporan UTS
